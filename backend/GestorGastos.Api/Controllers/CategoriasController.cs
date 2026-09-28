@@ -6,6 +6,7 @@ namespace GestorGastos.Api.Controllers;
 
 [ApiController]
 [Route("api/categorias")]
+[Produces("application/json")]
 public class CategoriasController : ControllerBase
 {
     private const string UniqueViolation = "23505";
@@ -14,7 +15,10 @@ public class CategoriasController : ControllerBase
 
     public CategoriasController(GestorGastosDbContext db) => _db = db;
 
+    /// <summary>Lista las categorías, opcionalmente filtradas por tipo.</summary>
+    /// <param name="tipo">Gasto o Ingreso. Si se omite, devuelve todas.</param>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<CategoriaDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CategoriaDto>>> Get([FromQuery] TipoMovimiento? tipo)
     {
         var query = _db.Categorias.AsNoTracking();
@@ -32,7 +36,10 @@ public class CategoriasController : ControllerBase
         return Ok(categorias);
     }
 
+    /// <summary>Obtiene una categoría por su id.</summary>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(CategoriaDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoriaDto>> GetById(int id)
     {
         var categoria = await _db.Categorias
@@ -44,7 +51,12 @@ public class CategoriasController : ControllerBase
         return categoria is null ? NotFound() : Ok(categoria);
     }
 
+    /// <summary>Crea una categoría.</summary>
+    /// <response code="409">Ya existe otra categoría con ese nombre.</response>
     [HttpPost]
+    [ProducesResponseType(typeof(CategoriaDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<CategoriaDto>> Create(CategoriaInputDto dto)
     {
         var categoria = new Categoria { Nombre = dto.Nombre, Tipo = dto.Tipo!.Value };
@@ -56,7 +68,7 @@ public class CategoriasController : ControllerBase
         }
         catch (DbUpdateException ex) when (EsNombreDuplicado(ex))
         {
-            return Conflict(new { mensaje = $"Ya existe una categoría llamada '{dto.Nombre}'." });
+            return Conflict(new ErrorResponse($"Ya existe una categoría llamada '{dto.Nombre}'."));
         }
 
         return CreatedAtAction(
@@ -65,7 +77,16 @@ public class CategoriasController : ControllerBase
             new CategoriaDto(categoria.Id, categoria.Nombre, categoria.Tipo));
     }
 
+    /// <summary>Actualiza el nombre o el tipo de una categoría.</summary>
+    /// <response code="409">
+    /// El nombre ya está en uso, o se intenta cambiar el tipo de una categoría
+    /// que ya tiene transacciones.
+    /// </response>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update(int id, CategoriaInputDto dto)
     {
         var categoria = await _db.Categorias.FindAsync(id);
@@ -76,10 +97,8 @@ public class CategoriasController : ControllerBase
         if (dto.Tipo!.Value != categoria.Tipo &&
             await _db.Transacciones.AnyAsync(t => t.CategoriaId == id))
         {
-            return Conflict(new
-            {
-                mensaje = $"La categoría '{categoria.Nombre}' ya tiene transacciones: no se puede cambiar su tipo."
-            });
+            return Conflict(new ErrorResponse(
+                $"La categoría '{categoria.Nombre}' ya tiene transacciones: no se puede cambiar su tipo."));
         }
 
         categoria.Nombre = dto.Nombre;
@@ -91,13 +110,18 @@ public class CategoriasController : ControllerBase
         }
         catch (DbUpdateException ex) when (EsNombreDuplicado(ex))
         {
-            return Conflict(new { mensaje = $"Ya existe una categoría llamada '{dto.Nombre}'." });
+            return Conflict(new ErrorResponse($"Ya existe una categoría llamada '{dto.Nombre}'."));
         }
 
         return NoContent();
     }
 
+    /// <summary>Elimina una categoría que no tenga transacciones.</summary>
+    /// <response code="409">La categoría tiene transacciones asociadas.</response>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete(int id)
     {
         var categoria = await _db.Categorias.FindAsync(id);
@@ -107,10 +131,8 @@ public class CategoriasController : ControllerBase
         var tieneTransacciones = await _db.Transacciones.AnyAsync(t => t.CategoriaId == id);
         if (tieneTransacciones)
         {
-            return Conflict(new
-            {
-                mensaje = $"La categoría '{categoria.Nombre}' tiene transacciones asociadas y no se puede eliminar."
-            });
+            return Conflict(new ErrorResponse(
+                $"La categoría '{categoria.Nombre}' tiene transacciones asociadas y no se puede eliminar."));
         }
 
         _db.Categorias.Remove(categoria);
