@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:18
+    container_name: gestorgastos-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: gestorgastos
+    # 5433: el PostgreSQL nativo ya ocupa el 5432.
+    ports:
+      - "127.0.0.1:5433:5432"
+    # postgres:18+ monta en /var/lib/postgresql, no en .../data.
+    volumes:
+      - gestorgastos-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gestorgastos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  gestorgastos-pgdata:

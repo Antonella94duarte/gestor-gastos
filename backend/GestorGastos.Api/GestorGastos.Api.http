@@ -1,0 +1,131 @@
+@host = http://localhost:5124
+
+### Listar categorías -> 200
+GET {{host}}/api/categorias
+Accept: application/json
+
+### Listar solo gastos -> 200
+GET {{host}}/api/categorias?tipo=Gasto
+Accept: application/json
+
+### Listar solo ingresos -> 200
+GET {{host}}/api/categorias?tipo=Ingreso
+Accept: application/json
+
+### Obtener una categoría -> 200
+GET {{host}}/api/categorias/1
+Accept: application/json
+
+### Crear categoría de gasto -> 201
+POST {{host}}/api/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Mascotas",
+  "tipo": "Gasto"
+}
+
+### Crear categoría de ingreso -> 201
+POST {{host}}/api/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Alquileres",
+  "tipo": "Ingreso"
+}
+
+### Renombrar categoría -> 204
+PUT {{host}}/api/categorias/1
+Content-Type: application/json
+
+{
+  "nombre": "Supermercado",
+  "tipo": "Gasto"
+}
+
+### Eliminar categoría -> 204
+DELETE {{host}}/api/categorias/7
+
+# ---------------------------------------------------------------
+# Casos de error
+# ---------------------------------------------------------------
+
+### GET inexistente -> 404
+GET {{host}}/api/categorias/9999
+
+### PUT inexistente -> 404
+PUT {{host}}/api/categorias/9999
+Content-Type: application/json
+
+{
+  "nombre": "No existe",
+  "tipo": "Gasto"
+}
+
+### DELETE inexistente -> 404
+DELETE {{host}}/api/categorias/9999
+
+### POST nombre repetido -> 409
+POST {{host}}/api/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Comida",
+  "tipo": "Gasto"
+}
+
+### PUT con nombre ya usado por otra -> 409
+PUT {{host}}/api/categorias/2
+Content-Type: application/json
+
+{
+  "nombre": "Comida",
+  "tipo": "Gasto"
+}
+
+### DELETE de categoría con transacciones -> 409
+DELETE {{host}}/api/categorias/1
+
+### PUT cambiando el tipo de una categoría con transacciones -> 409
+PUT {{host}}/api/categorias/1
+Content-Type: application/json
+
+{
+  "nombre": "Comida",
+  "tipo": "Ingreso"
+}
+
+### POST nombre vacío -> 400
+POST {{host}}/api/categorias
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "tipo": "Gasto"
+}
+
+### POST sin el campo tipo -> 400
+POST {{host}}/api/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Sin tipo"
+}
+
+### POST con tipo inexistente -> 400
+POST {{host}}/api/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Tipo raro",
+  "tipo": "Cualquiera"
+}
+
+### POST nombre de más de 100 caracteres -> 400
+POST {{host}}/api/categorias
+Content-Type: application/json
+
+{
+  "nombre": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "tipo": "Gasto"
+}
