@@ -35,7 +35,26 @@ Que quien abra el Swagger sepa qué devuelve cada endpoint, incluidos los errore
 - Título, versión y descripción del documento
 - `GenerateDocumentationFile` para que los `/// summary` lleguen a OpenAPI
 
-## 3. Transacciones
+## 3. Usuarios ✅
+
+`feat: API de registro de usuarios con hash de contraseña`
+
+Poder dar de alta usuarios desde el front, sin depender de scripts ni datos sembrados a mano.
+
+| Método | Ruta | Códigos |
+|---|---|---|
+| GET | `/api/usuarios` | 200 |
+| GET | `/api/usuarios/{id}` | 200, 404 |
+| POST | `/api/usuarios` | 201, 400, 409 |
+
+- Contraseña hasheada con `PasswordHasher<Usuario>` (PBKDF2), disponible en el framework compartido sin paquete extra
+- `UsuarioDto` no expone `PasswordHash`; la contraseña en claro no se persiste ni se registra
+- Email normalizado a minúsculas antes de guardar, para que el índice único no distinga mayúsculas
+- Email duplicado devuelve 409 capturando la violación del índice único
+
+Sin login ni JWT todavía: eso va en el entregable 6. El `GET` de listado es temporal y se restringirá cuando cada usuario solo pueda consultarse a sí mismo.
+
+## 4. Transacciones ✅
 
 `feat: API de transacciones con filtros y paginación`
 
@@ -58,9 +77,9 @@ Decisiones a resolver:
 - `Fecha` siempre en UTC, o Npgsql rechaza el `timestamptz`
 - Validar que la categoría exista antes de insertar, para no devolver un 500 por violación de FK
 - `Monto` mayor que cero; el tipo lo define la categoría
-- **Prerequisito:** sembrar un usuario de prueba, porque `UsuarioId` es obligatorio y todavía no hay endpoint de usuarios
+- El `UsuarioId` se recibe en el DTO de entrada y se valida contra `Usuarios`; pasará a salir del token en el entregable 6
 
-## 4. Resumen
+## 5. Resumen
 
 `feat: API de resumen con balance y totales por categoría`
 
@@ -74,7 +93,7 @@ Responder en qué se va la plata y si sobró a fin de mes.
 
 Las agregaciones se hacen con `GROUP BY` en PostgreSQL, nunca trayendo filas a memoria. El tipo (gasto o ingreso) sale del join con `Categorias`.
 
-## 5. Autenticación
+## 6. Autenticación
 
 `feat: autenticación con JWT y datos por usuario`
 
@@ -94,7 +113,7 @@ Modifica los entregables anteriores, y por eso va último:
 - Hash de contraseña con `PasswordHasher` o BCrypt
 - La clave de firma del JWT va en `user-secrets`, nunca en `appsettings.json`
 
-## 6. Presupuestos (opcional)
+## 7. Presupuestos (opcional)
 
 `feat: API de presupuestos con control de excedentes`
 
@@ -109,3 +128,20 @@ Fijar un tope mensual por categoría y saber cuánto queda disponible.
 | GET | `/api/presupuestos/estado?anio=&mes=` | presupuestado, gastado y disponible por categoría |
 
 Convierte la aplicación de registro histórico en herramienta de control.
+
+## 8. Registro por voz (candidato, sin fecha)
+
+`feat: registro de movimientos por voz con extracción vía LLM`
+
+Cargar un gasto dictándolo: *"gasté 2500 en el super"*.
+
+| Método | Ruta | Códigos |
+|---|---|---|
+| POST | `/api/movimientos/interpretar` | 200, 400, 422 |
+
+Devuelve la interpretación (`monto`, `categoriaId`, `fecha`, `descripcion`) **sin guardar**: el usuario confirma y recién ahí se usa `POST /api/transacciones`.
+
+- Dos etapas: voz → texto (Whisper, Azure Speech o Web Speech API) y texto → JSON estructurado
+- **El LLM nunca genera SQL ni accede a la base.** Devuelve JSON, el código valida, y se reutilizan los endpoints existentes
+- Proveedores detrás de `ITranscriptor` e `IExtractorDeMovimientos`, para poder cambiarlos y testear sin gastar tokens
+- Requiere el entregable 5 (auth) hecho

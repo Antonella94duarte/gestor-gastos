@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using GestorGastos.Api.OpenApi;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 
@@ -29,6 +30,9 @@ builder.Services.AddOpenApi(options =>
 });
 builder.Services.AddDbContext<GestorGastosDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// PBKDF2 con los parámetros por defecto de ASP.NET Core Identity.
+builder.Services.AddSingleton<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

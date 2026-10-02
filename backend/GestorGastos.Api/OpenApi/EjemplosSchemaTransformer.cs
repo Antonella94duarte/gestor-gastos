@@ -32,6 +32,51 @@ public sealed class EjemplosSchemaTransformer : IOpenApiSchemaTransformer
                 new JsonObject { ["id"] = 1, ["nombre"] = "Supermercado", ["tipo"] = "Gasto" }
             ];
         }
+        else if (tipo == typeof(UsuarioCreateDto))
+        {
+            schema.Examples =
+            [
+                new JsonObject { ["email"] = "liz@ejemplo.com", ["password"] = "unaClaveSegura123" }
+            ];
+        }
+        else if (tipo == typeof(UsuarioDto))
+        {
+            schema.Examples =
+            [
+                new JsonObject { ["id"] = 1, ["email"] = "liz@ejemplo.com" }
+            ];
+        }
+        else if (tipo == typeof(TransaccionInputDto))
+        {
+            schema.Examples =
+            [
+                new JsonObject
+                {
+                    ["monto"] = 2500.50,
+                    ["fecha"] = "2026-10-01T13:30:00-03:00",
+                    ["descripcion"] = "Almuerzo",
+                    ["categoriaId"] = 1,
+                    ["usuarioId"] = 1
+                }
+            ];
+        }
+        else if (tipo == typeof(TransaccionDto))
+        {
+            schema.Examples =
+            [
+                new JsonObject
+                {
+                    ["id"] = 1,
+                    ["monto"] = 2500.50,
+                    ["fecha"] = "2026-10-01T16:30:00Z",
+                    ["descripcion"] = "Almuerzo",
+                    ["categoriaId"] = 1,
+                    ["categoriaNombre"] = "Comida",
+                    ["tipo"] = "Gasto",
+                    ["usuarioId"] = 1
+                }
+            ];
+        }
         else if (tipo == typeof(ErrorResponse))
         {
             schema.Examples =

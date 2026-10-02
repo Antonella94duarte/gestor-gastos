@@ -1,5 +1,163 @@
 @host = http://localhost:5124
 
+# ---------------------------------------------------------------
+# Usuarios
+# ---------------------------------------------------------------
+
+### Registrar usuario -> 201
+POST {{host}}/api/usuarios
+Content-Type: application/json
+
+{
+  "email": "liz@ejemplo.com",
+  "password": "unaClaveSegura123"
+}
+
+### Listar usuarios -> 200
+GET {{host}}/api/usuarios
+Accept: application/json
+
+### Obtener usuario -> 200
+GET {{host}}/api/usuarios/1
+Accept: application/json
+
+### Email repetido -> 409
+POST {{host}}/api/usuarios
+Content-Type: application/json
+
+{
+  "email": "liz@ejemplo.com",
+  "password": "otraClaveSegura123"
+}
+
+### Email con formato inválido -> 400
+POST {{host}}/api/usuarios
+Content-Type: application/json
+
+{
+  "email": "no-es-un-email",
+  "password": "unaClaveSegura123"
+}
+
+### Contraseña de menos de 8 caracteres -> 400
+POST {{host}}/api/usuarios
+Content-Type: application/json
+
+{
+  "email": "otro@ejemplo.com",
+  "password": "corta"
+}
+
+### Usuario inexistente -> 404
+GET {{host}}/api/usuarios/9999
+
+# ---------------------------------------------------------------
+# Transacciones
+# ---------------------------------------------------------------
+
+### Listar (paginado, 20 por página) -> 200
+GET {{host}}/api/transacciones
+Accept: application/json
+
+### Segunda página, de a 5 -> 200
+GET {{host}}/api/transacciones?pagina=2&tamano=5
+
+### Solo ingresos -> 200
+GET {{host}}/api/transacciones?tipo=Ingreso
+
+### Septiembre de 2026 -> 200
+GET {{host}}/api/transacciones?desde=2026-09-01T00:00:00Z&hasta=2026-09-30T23:59:59Z
+
+### Gastos de un usuario en un rango -> 200
+GET {{host}}/api/transacciones?usuarioId=1&tipo=Gasto&desde=2026-09-01T00:00:00Z&hasta=2026-09-30T23:59:59Z
+
+### Por categoría -> 200
+GET {{host}}/api/transacciones?categoriaId=1
+
+### Obtener una -> 200
+GET {{host}}/api/transacciones/1
+
+### Registrar un gasto -> 201
+POST {{host}}/api/transacciones
+Content-Type: application/json
+
+{
+  "monto": 2500.50,
+  "fecha": "2026-10-01T13:30:00-03:00",
+  "descripcion": "Almuerzo",
+  "categoriaId": 1,
+  "usuarioId": 1
+}
+
+### Registrar un ingreso -> 201
+POST {{host}}/api/transacciones
+Content-Type: application/json
+
+{
+  "monto": 1500000,
+  "fecha": "2026-10-01T09:00:00-03:00",
+  "descripcion": "Sueldo de septiembre",
+  "categoriaId": 9,
+  "usuarioId": 1
+}
+
+### Actualizar -> 204
+PUT {{host}}/api/transacciones/1
+Content-Type: application/json
+
+{
+  "monto": 3000,
+  "fecha": "2026-10-01T13:30:00-03:00",
+  "descripcion": "Almuerzo corregido",
+  "categoriaId": 1,
+  "usuarioId": 1
+}
+
+### Eliminar -> 204
+DELETE {{host}}/api/transacciones/1
+
+### Monto cero -> 400
+POST {{host}}/api/transacciones
+Content-Type: application/json
+
+{
+  "monto": 0,
+  "fecha": "2026-10-01T13:30:00-03:00",
+  "descripcion": "Inválida",
+  "categoriaId": 1,
+  "usuarioId": 1
+}
+
+### Categoría inexistente -> 400
+POST {{host}}/api/transacciones
+Content-Type: application/json
+
+{
+  "monto": 100,
+  "fecha": "2026-10-01T13:30:00-03:00",
+  "descripcion": "Inválida",
+  "categoriaId": 9999,
+  "usuarioId": 1
+}
+
+### Sin fecha -> 400
+POST {{host}}/api/transacciones
+Content-Type: application/json
+
+{
+  "monto": 100,
+  "descripcion": "Inválida",
+  "categoriaId": 1,
+  "usuarioId": 1
+}
+
+### Transacción inexistente -> 404
+GET {{host}}/api/transacciones/9999
+
+# ---------------------------------------------------------------
+# Categorías
+# ---------------------------------------------------------------
+
 ### Listar categorías -> 200
 GET {{host}}/api/categorias
 Accept: application/json
