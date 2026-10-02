@@ -52,6 +52,42 @@ Content-Type: application/json
 GET {{host}}/api/usuarios/9999
 
 # ---------------------------------------------------------------
+# Resumen
+#
+# offsetHoras es la zona del usuario respecto de UTC (-3 para Paraguay
+# y Argentina). Sin él, un gasto de las 22:00 del último día del mes se
+# cuenta en el mes siguiente.
+# ---------------------------------------------------------------
+
+### Balance de septiembre 2026 -> 200
+GET {{host}}/api/resumen/mensual?anio=2026&mes=9&usuarioId=1&offsetHoras=-3
+Accept: application/json
+
+### Balance de octubre 2026 -> 200
+GET {{host}}/api/resumen/mensual?anio=2026&mes=10&usuarioId=1&offsetHoras=-3
+
+### Mismo mes sin offset, para comparar -> 200
+GET {{host}}/api/resumen/mensual?anio=2026&mes=9&usuarioId=1
+
+### Gastos por categoría en septiembre -> 200
+GET {{host}}/api/resumen/por-categoria?desde=2026-09-01T00:00:00-03:00&hasta=2026-09-30T23:59:59-03:00&usuarioId=1
+
+### Ingresos por categoría, sin límite de fechas -> 200
+GET {{host}}/api/resumen/por-categoria?tipo=Ingreso&usuarioId=1
+
+### Evolución de los últimos 12 meses -> 200
+GET {{host}}/api/resumen/evolucion?meses=12&usuarioId=1&offsetHoras=-3
+
+### Evolución de 6 meses -> 200
+GET {{host}}/api/resumen/evolucion?meses=6&usuarioId=1&offsetHoras=-3
+
+### Mes inválido -> 400
+GET {{host}}/api/resumen/mensual?anio=2026&mes=13
+
+### Offset fuera de rango -> 400
+GET {{host}}/api/resumen/mensual?anio=2026&mes=9&offsetHoras=-20
+
+# ---------------------------------------------------------------
 # Transacciones
 # ---------------------------------------------------------------
 

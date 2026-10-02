@@ -79,7 +79,7 @@ Decisiones a resolver:
 - `Monto` mayor que cero; el tipo lo define la categoría
 - El `UsuarioId` se recibe en el DTO de entrada y se valida contra `Usuarios`; pasará a salir del token en el entregable 6
 
-## 5. Resumen
+## 5. Resumen ✅
 
 `feat: API de resumen con balance y totales por categoría`
 
@@ -87,11 +87,14 @@ Responder en qué se va la plata y si sobró a fin de mes.
 
 | Método | Ruta | Devuelve |
 |---|---|---|
-| GET | `/api/resumen/mensual?anio=&mes=` | total ingresos, total gastos, balance |
-| GET | `/api/resumen/por-categoria?desde=&hasta=` | total y porcentaje por categoría |
-| GET | `/api/resumen/evolucion?meses=12` | serie mensual para graficar |
+| GET | `/api/resumen/mensual?anio=&mes=&usuarioId=&offsetHoras=` | total ingresos, total gastos, balance y cantidad |
+| GET | `/api/resumen/por-categoria?desde=&hasta=&tipo=&usuarioId=` | total, cantidad y porcentaje por categoría |
+| GET | `/api/resumen/evolucion?meses=&usuarioId=&offsetHoras=` | serie mensual, con los meses vacíos en cero |
 
-Las agregaciones se hacen con `GROUP BY` en PostgreSQL, nunca trayendo filas a memoria. El tipo (gasto o ingreso) sale del join con `Categorias`.
+- Todos aceptan `offsetHoras` para agrupar en la zona del usuario y no en UTC
+- Las agregaciones se resuelven con `GROUP BY` en PostgreSQL; en C# solo quedan los porcentajes y el relleno de meses, sobre resultados ya acotados
+- `por-categoria` usa `tipo=Gasto` por defecto y calcula los porcentajes sobre el total de ese tipo
+- `evolucion` recorta `meses` a un máximo de 36
 
 ## 6. Autenticación
 
