@@ -1,3 +1,5 @@
+using GestorGastos.Api.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -5,8 +7,10 @@ using Npgsql;
 namespace GestorGastos.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/categorias")]
 [Produces("application/json")]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 public class CategoriasController : ControllerBase
 {
     private const string UniqueViolation = "23505";
@@ -15,13 +19,18 @@ public class CategoriasController : ControllerBase
 
     public CategoriasController(GestorGastosDbContext db) => _db = db;
 
+    // Todas las consultas arrancan de acá: nunca se accede a Categorias sin
+    // filtrar por el usuario autenticado.
+    private IQueryable<Categoria> MisCategorias =>
+        _db.Categorias.Where(c => c.UsuarioId == User.ObtenerId());
+
     /// <summary>Lista las categorías, opcionalmente filtradas por tipo.</summary>
     /// <param name="tipo">Gasto o Ingreso. Si se omite, devuelve todas.</param>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<CategoriaDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CategoriaDto>>> Get([FromQuery] TipoMovimiento? tipo)
     {
-        var query = _db.Categorias.AsNoTracking();
+        var query = MisCategorias.AsNoTracking();
 
         if (tipo is not null)
         {
@@ -42,7 +51,7 @@ public class CategoriasController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoriaDto>> GetById(int id)
     {
-        var categoria = await _db.Categorias
+        var categoria = await MisCategorias
             .AsNoTracking()
             .Where(c => c.Id == id)
             .Select(c => new CategoriaDto(c.Id, c.Nombre, c.Tipo))
@@ -59,7 +68,13 @@ public class CategoriasController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<CategoriaDto>> Create(CategoriaInputDto dto)
     {
-        var categoria = new Categoria { Nombre = dto.Nombre, Tipo = dto.Tipo!.Value };
+        var categoria = new Categoria
+        {
+            Nombre = dto.Nombre,
+            Tipo = dto.Tipo!.Value,
+            UsuarioId = User.ObtenerId()
+        };
+
         _db.Categorias.Add(categoria);
 
         try
@@ -89,7 +104,9 @@ public class CategoriasController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update(int id, CategoriaInputDto dto)
     {
-        var categoria = await _db.Categorias.FindAsync(id);
+        // Sobre MisCategorias y no FindAsync: así la categoría de otro usuario
+        // devuelve 404 en vez de dejarse modificar.
+        var categoria = await MisCategorias.FirstOrDefaultAsync(c => c.Id == id);
         if (categoria is null) return NotFound();
 
         // El tipo de la transacción se deriva de su categoría: cambiarlo con
@@ -124,7 +141,7 @@ public class CategoriasController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete(int id)
     {
-        var categoria = await _db.Categorias.FindAsync(id);
+        var categoria = await MisCategorias.FirstOrDefaultAsync(c => c.Id == id);
         if (categoria is null) return NotFound();
 
         // La FK es Restrict: sin este chequeo el error llega como 500 desde la base.

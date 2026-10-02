@@ -55,8 +55,7 @@ public sealed class EjemplosSchemaTransformer : IOpenApiSchemaTransformer
                     ["monto"] = 2500.50,
                     ["fecha"] = "2026-10-01T13:30:00-03:00",
                     ["descripcion"] = "Almuerzo",
-                    ["categoriaId"] = 1,
-                    ["usuarioId"] = 1
+                    ["categoriaId"] = 1
                 }
             ];
         }
@@ -72,8 +71,7 @@ public sealed class EjemplosSchemaTransformer : IOpenApiSchemaTransformer
                     ["descripcion"] = "Almuerzo",
                     ["categoriaId"] = 1,
                     ["categoriaNombre"] = "Comida",
-                    ["tipo"] = "Gasto",
-                    ["usuarioId"] = 1
+                    ["tipo"] = "Gasto"
                 }
             ];
         }

@@ -27,13 +27,31 @@ cd backend/GestorGastos.Api
 dotnet ef database update
 ```
 
-**3. API**
+**3. Clave de firma de los tokens**
+
+La API no arranca sin ella. Se guarda fuera del repositorio con user-secrets:
+
+```powershell
+dotnet user-secrets set "Jwt:ClaveFirma" "$([Convert]::ToBase64String((1..64 | ForEach-Object { Get-Random -Max 256 })))"
+```
+
+**4. API**
 
 ```bash
 dotnet run --launch-profile http
 ```
 
 Swagger UI: <http://localhost:5124/swagger>
+
+**5. Primer usuario**
+
+Todos los endpoints salvo los de `/api/auth` requieren token. Registrate y usá el token que devuelve:
+
+```powershell
+curl.exe -X POST http://localhost:5124/api/auth/registro -H "Content-Type: application/json" -d "{\"email\":\"tu@email.com\",\"password\":\"unaClaveSegura123\"}"
+```
+
+En Swagger, el botón **Authorize** acepta ese token.
 
 ## Comandos
 

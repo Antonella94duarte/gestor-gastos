@@ -16,10 +16,20 @@ public class GestorGastosDbContext : DbContext
             .HasIndex(u => u.Email)
             .IsUnique();
 
-        // Evita categorías repetidas. Pasará a ser (UsuarioId, Nombre) con JWT.
+        // Compuesto: dos usuarios pueden tener cada uno su categoría "Comida".
         modelBuilder.Entity<Categoria>()
-            .HasIndex(c => c.Nombre)
+            .HasIndex(c => new { c.UsuarioId, c.Nombre })
             .IsUnique();
+
+        // Restrict y no Cascade: si fuera Cascade, al borrar un usuario
+        // PostgreSQL intentaría borrar sus categorías mientras el Restrict de
+        // Transaccion -> Categoria todavía las referencia. Borrar una cuenta
+        // debe limpiar transacciones y categorías explícitamente, en ese orden.
+        modelBuilder.Entity<Categoria>()
+            .HasOne(c => c.Usuario)
+            .WithMany()
+            .HasForeignKey(c => c.UsuarioId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Como texto y no como int: la base queda legible al consultarla a mano.
         modelBuilder.Entity<Categoria>()

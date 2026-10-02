@@ -1,11 +1,14 @@
 @host = http://localhost:5124
 
 # ---------------------------------------------------------------
-# Usuarios
+# Autenticación
+#
+# Ejecutar primero el login: los demás requests reutilizan su token
+# con {{login.response.body.token}}, sin copiar y pegar nada.
 # ---------------------------------------------------------------
 
-### Registrar usuario -> 201
-POST {{host}}/api/usuarios
+### Registro -> 201 (devuelve token)
+POST {{host}}/api/auth/registro
 Content-Type: application/json
 
 {
@@ -13,43 +16,40 @@ Content-Type: application/json
   "password": "unaClaveSegura123"
 }
 
-### Listar usuarios -> 200
-GET {{host}}/api/usuarios
-Accept: application/json
-
-### Obtener usuario -> 200
-GET {{host}}/api/usuarios/1
-Accept: application/json
-
-### Email repetido -> 409
-POST {{host}}/api/usuarios
+### Login -> 200
+# @name login
+POST {{host}}/api/auth/login
 Content-Type: application/json
 
 {
   "email": "liz@ejemplo.com",
-  "password": "otraClaveSegura123"
-}
-
-### Email con formato inválido -> 400
-POST {{host}}/api/usuarios
-Content-Type: application/json
-
-{
-  "email": "no-es-un-email",
   "password": "unaClaveSegura123"
 }
 
-### Contraseña de menos de 8 caracteres -> 400
-POST {{host}}/api/usuarios
+### Contraseña incorrecta -> 401
+POST {{host}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "otro@ejemplo.com",
-  "password": "corta"
+  "email": "liz@ejemplo.com",
+  "password": "incorrecta"
 }
 
-### Usuario inexistente -> 404
-GET {{host}}/api/usuarios/9999
+### Email ya registrado -> 409
+POST {{host}}/api/auth/registro
+Content-Type: application/json
+
+{
+  "email": "liz@ejemplo.com",
+  "password": "otraClaveSegura456"
+}
+
+### Quién soy -> 200
+GET {{host}}/api/usuarios/me
+Authorization: Bearer {{login.response.body.token}}
+
+### Sin token -> 401
+GET {{host}}/api/usuarios/me
 
 # ---------------------------------------------------------------
 # Resumen
@@ -60,32 +60,28 @@ GET {{host}}/api/usuarios/9999
 # ---------------------------------------------------------------
 
 ### Balance de septiembre 2026 -> 200
-GET {{host}}/api/resumen/mensual?anio=2026&mes=9&usuarioId=1&offsetHoras=-3
-Accept: application/json
+GET {{host}}/api/resumen/mensual?anio=2026&mes=9&offsetHoras=-3
+Authorization: Bearer {{login.response.body.token}}
 
 ### Balance de octubre 2026 -> 200
-GET {{host}}/api/resumen/mensual?anio=2026&mes=10&usuarioId=1&offsetHoras=-3
-
-### Mismo mes sin offset, para comparar -> 200
-GET {{host}}/api/resumen/mensual?anio=2026&mes=9&usuarioId=1
+GET {{host}}/api/resumen/mensual?anio=2026&mes=10&offsetHoras=-3
+Authorization: Bearer {{login.response.body.token}}
 
 ### Gastos por categoría en septiembre -> 200
-GET {{host}}/api/resumen/por-categoria?desde=2026-09-01T00:00:00-03:00&hasta=2026-09-30T23:59:59-03:00&usuarioId=1
+GET {{host}}/api/resumen/por-categoria?desde=2026-09-01T00:00:00-03:00&hasta=2026-09-30T23:59:59-03:00
+Authorization: Bearer {{login.response.body.token}}
 
-### Ingresos por categoría, sin límite de fechas -> 200
-GET {{host}}/api/resumen/por-categoria?tipo=Ingreso&usuarioId=1
+### Ingresos por categoría -> 200
+GET {{host}}/api/resumen/por-categoria?tipo=Ingreso
+Authorization: Bearer {{login.response.body.token}}
 
 ### Evolución de los últimos 12 meses -> 200
-GET {{host}}/api/resumen/evolucion?meses=12&usuarioId=1&offsetHoras=-3
-
-### Evolución de 6 meses -> 200
-GET {{host}}/api/resumen/evolucion?meses=6&usuarioId=1&offsetHoras=-3
+GET {{host}}/api/resumen/evolucion?meses=12&offsetHoras=-3
+Authorization: Bearer {{login.response.body.token}}
 
 ### Mes inválido -> 400
 GET {{host}}/api/resumen/mensual?anio=2026&mes=13
-
-### Offset fuera de rango -> 400
-GET {{host}}/api/resumen/mensual?anio=2026&mes=9&offsetHoras=-20
+Authorization: Bearer {{login.response.body.token}}
 
 # ---------------------------------------------------------------
 # Transacciones
@@ -93,125 +89,119 @@ GET {{host}}/api/resumen/mensual?anio=2026&mes=9&offsetHoras=-20
 
 ### Listar (paginado, 20 por página) -> 200
 GET {{host}}/api/transacciones
-Accept: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 ### Segunda página, de a 5 -> 200
 GET {{host}}/api/transacciones?pagina=2&tamano=5
+Authorization: Bearer {{login.response.body.token}}
 
 ### Solo ingresos -> 200
 GET {{host}}/api/transacciones?tipo=Ingreso
+Authorization: Bearer {{login.response.body.token}}
 
 ### Septiembre de 2026 -> 200
 GET {{host}}/api/transacciones?desde=2026-09-01T00:00:00Z&hasta=2026-09-30T23:59:59Z
-
-### Gastos de un usuario en un rango -> 200
-GET {{host}}/api/transacciones?usuarioId=1&tipo=Gasto&desde=2026-09-01T00:00:00Z&hasta=2026-09-30T23:59:59Z
+Authorization: Bearer {{login.response.body.token}}
 
 ### Por categoría -> 200
 GET {{host}}/api/transacciones?categoriaId=1
+Authorization: Bearer {{login.response.body.token}}
 
 ### Obtener una -> 200
 GET {{host}}/api/transacciones/1
+Authorization: Bearer {{login.response.body.token}}
 
 ### Registrar un gasto -> 201
 POST {{host}}/api/transacciones
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
   "monto": 2500.50,
   "fecha": "2026-10-01T13:30:00-03:00",
   "descripcion": "Almuerzo",
-  "categoriaId": 1,
-  "usuarioId": 1
+  "categoriaId": 1
 }
 
 ### Registrar un ingreso -> 201
 POST {{host}}/api/transacciones
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
   "monto": 1500000,
   "fecha": "2026-10-01T09:00:00-03:00",
   "descripcion": "Sueldo de septiembre",
-  "categoriaId": 9,
-  "usuarioId": 1
+  "categoriaId": 9
 }
 
 ### Actualizar -> 204
 PUT {{host}}/api/transacciones/1
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
   "monto": 3000,
   "fecha": "2026-10-01T13:30:00-03:00",
   "descripcion": "Almuerzo corregido",
-  "categoriaId": 1,
-  "usuarioId": 1
+  "categoriaId": 1
 }
 
 ### Eliminar -> 204
 DELETE {{host}}/api/transacciones/1
+Authorization: Bearer {{login.response.body.token}}
 
 ### Monto cero -> 400
 POST {{host}}/api/transacciones
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
   "monto": 0,
   "fecha": "2026-10-01T13:30:00-03:00",
   "descripcion": "Inválida",
-  "categoriaId": 1,
-  "usuarioId": 1
+  "categoriaId": 1
 }
 
-### Categoría inexistente -> 400
+### Categoría de otro usuario o inexistente -> 400
 POST {{host}}/api/transacciones
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
   "monto": 100,
   "fecha": "2026-10-01T13:30:00-03:00",
   "descripcion": "Inválida",
-  "categoriaId": 9999,
-  "usuarioId": 1
+  "categoriaId": 9999
 }
 
-### Sin fecha -> 400
-POST {{host}}/api/transacciones
-Content-Type: application/json
-
-{
-  "monto": 100,
-  "descripcion": "Inválida",
-  "categoriaId": 1,
-  "usuarioId": 1
-}
-
-### Transacción inexistente -> 404
+### Transacción inexistente o ajena -> 404
 GET {{host}}/api/transacciones/9999
+Authorization: Bearer {{login.response.body.token}}
 
 # ---------------------------------------------------------------
 # Categorías
 # ---------------------------------------------------------------
 
-### Listar categorías -> 200
+### Listar -> 200
 GET {{host}}/api/categorias
-Accept: application/json
+Authorization: Bearer {{login.response.body.token}}
 
-### Listar solo gastos -> 200
+### Solo gastos -> 200
 GET {{host}}/api/categorias?tipo=Gasto
-Accept: application/json
+Authorization: Bearer {{login.response.body.token}}
 
-### Listar solo ingresos -> 200
+### Solo ingresos -> 200
 GET {{host}}/api/categorias?tipo=Ingreso
-Accept: application/json
+Authorization: Bearer {{login.response.body.token}}
 
-### Obtener una categoría -> 200
+### Obtener una -> 200
 GET {{host}}/api/categorias/1
-Accept: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 ### Crear categoría de gasto -> 201
 POST {{host}}/api/categorias
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
@@ -221,6 +211,7 @@ Content-Type: application/json
 
 ### Crear categoría de ingreso -> 201
 POST {{host}}/api/categorias
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
@@ -228,8 +219,9 @@ Content-Type: application/json
   "tipo": "Ingreso"
 }
 
-### Renombrar categoría -> 204
+### Renombrar -> 204
 PUT {{host}}/api/categorias/1
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
@@ -237,30 +229,9 @@ Content-Type: application/json
   "tipo": "Gasto"
 }
 
-### Eliminar categoría -> 204
-DELETE {{host}}/api/categorias/7
-
-# ---------------------------------------------------------------
-# Casos de error
-# ---------------------------------------------------------------
-
-### GET inexistente -> 404
-GET {{host}}/api/categorias/9999
-
-### PUT inexistente -> 404
-PUT {{host}}/api/categorias/9999
-Content-Type: application/json
-
-{
-  "nombre": "No existe",
-  "tipo": "Gasto"
-}
-
-### DELETE inexistente -> 404
-DELETE {{host}}/api/categorias/9999
-
-### POST nombre repetido -> 409
+### Nombre repetido en la misma cuenta -> 409
 POST {{host}}/api/categorias
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
@@ -268,58 +239,19 @@ Content-Type: application/json
   "tipo": "Gasto"
 }
 
-### PUT con nombre ya usado por otra -> 409
-PUT {{host}}/api/categorias/2
-Content-Type: application/json
-
-{
-  "nombre": "Comida",
-  "tipo": "Gasto"
-}
-
-### DELETE de categoría con transacciones -> 409
+### Eliminar categoría con transacciones -> 409
 DELETE {{host}}/api/categorias/1
+Authorization: Bearer {{login.response.body.token}}
 
-### PUT cambiando el tipo de una categoría con transacciones -> 409
-PUT {{host}}/api/categorias/1
-Content-Type: application/json
-
-{
-  "nombre": "Comida",
-  "tipo": "Ingreso"
-}
-
-### POST nombre vacío -> 400
+### Sin el campo tipo -> 400
 POST {{host}}/api/categorias
-Content-Type: application/json
-
-{
-  "nombre": "",
-  "tipo": "Gasto"
-}
-
-### POST sin el campo tipo -> 400
-POST {{host}}/api/categorias
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: application/json
 
 {
   "nombre": "Sin tipo"
 }
 
-### POST con tipo inexistente -> 400
-POST {{host}}/api/categorias
-Content-Type: application/json
-
-{
-  "nombre": "Tipo raro",
-  "tipo": "Cualquiera"
-}
-
-### POST nombre de más de 100 caracteres -> 400
-POST {{host}}/api/categorias
-Content-Type: application/json
-
-{
-  "nombre": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-  "tipo": "Gasto"
-}
+### Categoría inexistente o ajena -> 404
+GET {{host}}/api/categorias/9999
+Authorization: Bearer {{login.response.body.token}}

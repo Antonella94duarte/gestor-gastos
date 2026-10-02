@@ -1,11 +1,15 @@
+using GestorGastos.Api.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorGastos.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/resumen")]
 [Produces("application/json")]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 public class ResumenController : ControllerBase
 {
     private const int MesesMaximos = 36;
@@ -14,10 +18,12 @@ public class ResumenController : ControllerBase
 
     public ResumenController(GestorGastosDbContext db) => _db = db;
 
+    private IQueryable<Transaccion> MisTransacciones =>
+        _db.Transacciones.Where(t => t.UsuarioId == User.ObtenerId());
+
     /// <summary>Totales de ingresos, gastos y balance de un mes.</summary>
     /// <param name="anio">Año del período.</param>
     /// <param name="mes">Mes del período, de 1 a 12.</param>
-    /// <param name="usuarioId">Filtra por usuario.</param>
     /// <param name="offsetHoras">
     /// Offset de la zona horaria del usuario respecto de UTC, por ejemplo -3.
     /// Las fechas se guardan en UTC: sin esto, un gasto de las 22:00 del último
@@ -29,7 +35,6 @@ public class ResumenController : ControllerBase
     public async Task<ActionResult<ResumenMensualDto>> Mensual(
         [FromQuery] int anio,
         [FromQuery] int mes,
-        [FromQuery] int? usuarioId,
         [FromQuery] int offsetHoras = 0)
     {
         if (!PeriodoValido(anio, mes, offsetHoras)) return ValidationProblem(ModelState);
@@ -38,11 +43,9 @@ public class ResumenController : ControllerBase
         var inicio = new DateTimeOffset(anio, mes, 1, 0, 0, 0, offset);
         var fin = inicio.AddMonths(1);
 
-        var query = _db.Transacciones
+        var query = MisTransacciones
             .AsNoTracking()
             .Where(t => t.Fecha >= inicio.UtcDateTime && t.Fecha < fin.UtcDateTime);
-
-        if (usuarioId is not null) query = query.Where(t => t.UsuarioId == usuarioId);
 
         // Una sola consulta: PostgreSQL suma, acá solo se arma el DTO.
         var totales = await query
@@ -66,20 +69,17 @@ public class ResumenController : ControllerBase
     /// <param name="desde">Inicio del rango, inclusive.</param>
     /// <param name="hasta">Fin del rango, inclusive.</param>
     /// <param name="tipo">Gasto o Ingreso. Los porcentajes se calculan sobre el total de este tipo.</param>
-    /// <param name="usuarioId">Filtra por usuario.</param>
     [HttpGet("por-categoria")]
     [ProducesResponseType(typeof(ResumenPorCategoriaDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ResumenPorCategoriaDto>> PorCategoria(
         [FromQuery] DateTimeOffset? desde,
         [FromQuery] DateTimeOffset? hasta,
-        [FromQuery] TipoMovimiento tipo = TipoMovimiento.Gasto,
-        [FromQuery] int? usuarioId = null)
+        [FromQuery] TipoMovimiento tipo = TipoMovimiento.Gasto)
     {
-        var query = _db.Transacciones
+        var query = MisTransacciones
             .AsNoTracking()
             .Where(t => t.Categoria.Tipo == tipo);
 
-        if (usuarioId is not null) query = query.Where(t => t.UsuarioId == usuarioId);
         if (desde is not null) query = query.Where(t => t.Fecha >= desde.Value.UtcDateTime);
         if (hasta is not null) query = query.Where(t => t.Fecha <= hasta.Value.UtcDateTime);
 
@@ -113,14 +113,12 @@ public class ResumenController : ControllerBase
 
     /// <summary>Serie mensual de ingresos, gastos y balance para graficar.</summary>
     /// <param name="meses">Cantidad de meses hacia atrás, contando el actual. Máximo 36.</param>
-    /// <param name="usuarioId">Filtra por usuario.</param>
     /// <param name="offsetHoras">Offset de la zona horaria del usuario respecto de UTC.</param>
     [HttpGet("evolucion")]
     [ProducesResponseType(typeof(IEnumerable<MesEvolucionDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<MesEvolucionDto>>> Evolucion(
         [FromQuery] int meses = 12,
-        [FromQuery] int? usuarioId = null,
         [FromQuery] int offsetHoras = 0)
     {
         if (!OffsetValido(offsetHoras)) return ValidationProblem(ModelState);
@@ -133,11 +131,9 @@ public class ResumenController : ControllerBase
             .AddMonths(-(meses - 1));
         var fin = primerMes.AddMonths(meses);
 
-        var query = _db.Transacciones
+        var query = MisTransacciones
             .AsNoTracking()
             .Where(t => t.Fecha >= primerMes.UtcDateTime && t.Fecha < fin.UtcDateTime);
-
-        if (usuarioId is not null) query = query.Where(t => t.UsuarioId == usuarioId);
 
         // El desplazamiento se aplica dentro de la consulta para que PostgreSQL
         // agrupe por el mes de la zona del usuario, no por el mes UTC.

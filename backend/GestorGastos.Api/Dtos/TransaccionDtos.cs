@@ -10,8 +10,7 @@ public record TransaccionDto(
     string Descripcion,
     int CategoriaId,
     string CategoriaNombre,
-    TipoMovimiento Tipo,
-    int UsuarioId);
+    TipoMovimiento Tipo);
 
 public record TransaccionInputDto
 {
@@ -31,10 +30,7 @@ public record TransaccionInputDto
     [MaxLength(200, ErrorMessage = "La descripción no puede superar los 200 caracteres.")]
     public string Descripcion { get; init; } = string.Empty;
 
+    // El usuario no se recibe: sale del token.
     [Required(ErrorMessage = "La categoría es obligatoria.")]
     public int? CategoriaId { get; init; }
-
-    // Pasará a salir del token con la autenticación (entregable 6).
-    [Required(ErrorMessage = "El usuario es obligatorio.")]
-    public int? UsuarioId { get; init; }
 }

@@ -96,7 +96,7 @@ Responder en qué se va la plata y si sobró a fin de mes.
 - `por-categoria` usa `tipo=Gasto` por defecto y calcula los porcentajes sobre el total de ese tipo
 - `evolucion` recorta `meses` a un máximo de 36
 
-## 6. Autenticación
+## 6. Autenticación ✅
 
 `feat: autenticación con JWT y datos por usuario`
 
@@ -105,16 +105,15 @@ Que cada usuario vea únicamente sus propios movimientos.
 | Método | Ruta | Códigos |
 |---|---|---|
 | POST | `/api/auth/registro` | 201, 400, 409 |
-| POST | `/api/auth/login` | 200, 401 |
+| POST | `/api/auth/login` | 200, 400, 401 |
+| GET | `/api/usuarios/me` | 200, 401, 404 |
 
-Modifica los entregables anteriores, y por eso va último:
-
-- `[Authorize]` en todos los controllers
-- El `UsuarioId` sale del token y desaparece de los DTOs de entrada
-- Cada consulta se filtra por el usuario autenticado
-- `Categoria` pasa a tener FK `UsuarioId`, y el índice único `Nombre` se convierte en `(UsuarioId, Nombre)`
-- Hash de contraseña con `PasswordHasher` o BCrypt
-- La clave de firma del JWT va en `user-secrets`, nunca en `appsettings.json`
+- `[Authorize]` en todos los controllers; solo `/api/auth/*` queda anónimo
+- El `UsuarioId` sale del token y desapareció de los DTOs y de los query params
+- Cada controller filtra desde una propiedad `MisX`, y usa `FirstOrDefaultAsync` en lugar de `FindAsync` para que un recurso ajeno dé 404
+- `Categoria` tiene FK `UsuarioId` y su índice único pasó a `(UsuarioId, Nombre)`
+- La clave de firma vive en user-secrets; la app no arranca si falta
+- Swagger muestra el botón Authorize solo en las operaciones protegidas
 
 ## 7. Presupuestos (opcional)
 
