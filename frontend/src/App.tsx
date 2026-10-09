@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./componentes/Layout";
 import { AuthProvider } from "./auth/AuthContext";
 import { RutaProtegida } from "./auth/RutaProtegida";
+import { Categorias } from "./paginas/Categorias";
 import { EnConstruccion } from "./paginas/EnConstruccion";
 import { Inicio } from "./paginas/Inicio";
 import { Login } from "./paginas/Login";
@@ -23,10 +24,7 @@ export default function App() {
                 path="transacciones"
                 element={<EnConstruccion titulo="Movimientos" />}
               />
-              <Route
-                path="categorias"
-                element={<EnConstruccion titulo="Categorías" />}
-              />
+              <Route path="categorias" element={<Categorias />} />
             </Route>
           </Route>
 

@@ -141,11 +141,16 @@ Poder entrar a la aplicación y que la sesión sobreviva a recargar la página.
 - Los tipos de `api/tipos.ts` reflejan los DTOs del backend
 - CORS configurado en el backend para `localhost:5173`
 
-## F2. Categorías
+## F2. Categorías ✅
 
 `feat(front): ABM de categorías`
 
-Listado separado por tipo, alta, edición y baja, con los 409 del backend mostrados como mensajes útiles (nombre repetido, categoría en uso, cambio de tipo bloqueado).
+Dos secciones (Gastos / Ingresos), cada una con su lista y su alta inline. Edición y borrado por fila, con confirmación de dos pasos en vez de `confirm()` nativo.
+
+- Edición inline: nombre + selector de tipo, Guardar/Cancelar
+- Los 409 del backend (nombre repetido, categoría en uso, cambio de tipo bloqueado) se muestran tal cual, junto al control que falló
+- Después de cualquier alta, edición o baja se recargan ambas listas: si el tipo cambia, la categoría puede pasar de sección
+- Verificado end-to-end con Playwright headless contra la app real: crear, editar y eliminar una categoría, con capturas en cada paso
 
 ## F3. Movimientos
 

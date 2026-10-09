@@ -251,3 +251,101 @@ select:focus {
 .negativo {
   color: var(--negativo);
 }
+
+/* ---------- Categorías ---------- */
+
+.pila {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin: 0 0 1rem;
+}
+
+.lista-categorias {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.fila-categoria {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.fila-categoria:last-child {
+  border-bottom: none;
+}
+
+.fila-categoria-principal,
+.fila-categoria-edicion {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fila-categoria-nombre {
+  flex: 1;
+  font-size: 0.925rem;
+}
+
+.fila-categoria-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.fila-categoria-edicion input {
+  flex: 1;
+  min-width: 0;
+}
+
+.fila-categoria-edicion select {
+  flex-shrink: 0;
+}
+
+.nueva-categoria {
+  padding-top: 0.25rem;
+}
+
+.form-inline {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.form-inline input {
+  flex: 1;
+  min-width: 0;
+}
+
+.boton-pequeno {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8125rem;
+}
+
+.boton-secundario {
+  background: none;
+  border: 1px solid var(--borde);
+  color: var(--texto);
+}
+
+.boton-secundario:hover:not(:disabled) {
+  border-color: var(--texto-suave);
+}
+
+.boton-peligro {
+  background: none;
+  border: 1px solid var(--negativo);
+  color: var(--negativo);
+}
+
+.boton-peligro:hover:not(:disabled) {
+  background: var(--error-fondo);
+}
