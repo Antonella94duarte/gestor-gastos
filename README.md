@@ -1,12 +1,14 @@
 # Gestor de Gastos Personales
 
-API REST para registrar gastos personales: usuarios, categorías y transacciones.
+Aplicación para registrar gastos e ingresos personales: usuarios, categorías, movimientos y reportes.
 
-.NET 10 · ASP.NET Core · EF Core 10 · PostgreSQL 18 · Swagger UI
+**Backend:** .NET 10 · ASP.NET Core · EF Core 10 · PostgreSQL 18 · JWT · Swagger UI
+**Frontend:** React · Vite · TypeScript
 
 ## Requisitos
 
 - .NET SDK 10.0
+- Node.js 20 o superior
 - Docker Desktop
 - `dotnet-ef`: `dotnet tool install --global dotnet-ef`
 
@@ -43,15 +45,23 @@ dotnet run --launch-profile http
 
 Swagger UI: <http://localhost:5124/swagger>
 
-**5. Primer usuario**
+**5. Frontend**
 
-Todos los endpoints salvo los de `/api/auth` requieren token. Registrate y usá el token que devuelve:
+En otra terminal:
 
-```powershell
-curl.exe -X POST http://localhost:5124/api/auth/registro -H "Content-Type: application/json" -d "{\"email\":\"tu@email.com\",\"password\":\"unaClaveSegura123\"}"
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-En Swagger, el botón **Authorize** acepta ese token.
+Aplicación: <http://localhost:5173>. Desde ahí podés crear tu cuenta y usar la aplicación.
+
+> Para probar la API directamente en Swagger, registrate primero y pegá el token en el botón **Authorize**:
+>
+> ```powershell
+> curl.exe -X POST http://localhost:5124/api/auth/registro -H "Content-Type: application/json" -d "{\"email\":\"tu@email.com\",\"password\":\"unaClaveSegura123\"}"
+> ```
 
 ## Comandos
 
@@ -105,11 +115,35 @@ docker tag mirror.gcr.io/library/postgres:18 postgres:18
 ```
 gestor-gastos/
 ├─ docker-compose.yml
-└─ backend/GestorGastos.Api/
-   ├─ Models/           # Usuario, Categoria, Transaccion
-   ├─ Data/             # GestorGastosDbContext
-   ├─ Controllers/
-   ├─ Migrations/
-   ├─ Program.cs
-   └─ appsettings.json
+├─ backend/GestorGastos.Api/
+│  ├─ Models/           # Usuario, Categoria, Transaccion
+│  ├─ Data/             # GestorGastosDbContext
+│  ├─ Dtos/
+│  ├─ Auth/             # JWT: opciones, generador de tokens
+│  ├─ OpenApi/          # transformers de ejemplos y seguridad
+│  ├─ Controllers/
+│  ├─ Migrations/
+│  ├─ Program.cs
+│  └─ appsettings.json
+└─ frontend/src/
+   ├─ api/              # cliente HTTP, endpoints y tipos
+   ├─ auth/             # contexto de sesión y rutas protegidas
+   ├─ componentes/
+   ├─ paginas/
+   └─ utilidades/
 ```
+
+## Endpoints
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/auth/registro` | Crear cuenta |
+| POST | `/api/auth/login` | Iniciar sesión |
+| GET | `/api/usuarios/me` | Usuario autenticado |
+| GET POST PUT DELETE | `/api/categorias` | Categorías de gasto e ingreso |
+| GET POST PUT DELETE | `/api/transacciones` | Movimientos, con filtros y paginación |
+| GET | `/api/resumen/mensual` | Ingresos, gastos y balance del mes |
+| GET | `/api/resumen/por-categoria` | Totales y porcentajes por categoría |
+| GET | `/api/resumen/evolucion` | Serie mensual |
+
+Todos requieren token salvo los de `/api/auth`.

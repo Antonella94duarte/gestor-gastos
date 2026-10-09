@@ -76,6 +76,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// El front corre en otro puerto, así que es otro origen para el navegador.
+const string PoliticaFront = "front-dev";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(PoliticaFront, policy => policy
+        .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+        .AllowAnyHeader()
+        .AllowAnyMethod());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -90,7 +100,15 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// En desarrollo la redirección a HTTPS rompe al front: el navegador recibe un
+// 307 hacia un puerto con certificado autofirmado y la llamada falla.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+// UseCors va antes de autenticar: la preflight OPTIONS no lleva token.
+app.UseCors(PoliticaFront);
 
 // UseAuthentication va antes que UseAuthorization: primero se identifica
 // quién es, después si puede.

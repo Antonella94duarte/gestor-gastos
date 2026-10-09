@@ -1,6 +1,9 @@
 # Roadmap
 
-Plan de trabajo por entregables. Cada entregable es un commit que deja la API en un estado funcional y demostrable.
+Plan de trabajo por entregables. Cada entregable es un commit que deja el proyecto en un estado funcional y demostrable.
+
+- **Backend** (`backend/GestorGastos.Api`): entregables 1 a 6, completos.
+- **Frontend** (`frontend/`): React + Vite + TypeScript, entregables F1 en adelante.
 
 ---
 
@@ -114,6 +117,49 @@ Que cada usuario vea únicamente sus propios movimientos.
 - `Categoria` tiene FK `UsuarioId` y su índice único pasó a `(UsuarioId, Nombre)`
 - La clave de firma vive en user-secrets; la app no arranca si falta
 - Swagger muestra el botón Authorize solo en las operaciones protegidas
+
+---
+
+# Frontend
+
+## F1. Esqueleto y autenticación ✅
+
+`feat(front): esqueleto React con autenticación JWT`
+
+Poder entrar a la aplicación y que la sesión sobreviva a recargar la página.
+
+| Pantalla | Ruta |
+|---|---|
+| Login | `/login` |
+| Registro | `/registro` |
+| Resumen del mes | `/` |
+
+- Cliente HTTP propio sobre `fetch`, que agrega el token y traduce los errores de la API a `ErrorApi`
+- `AuthContext` con el estado de sesión; al recargar valida el token contra `/api/usuarios/me`
+- Rutas protegidas con `<RutaProtegida>`: sin sesión redirige al login y recuerda a dónde iba
+- Un 401 de cualquier llamada cierra la sesión automáticamente
+- Los tipos de `api/tipos.ts` reflejan los DTOs del backend
+- CORS configurado en el backend para `localhost:5173`
+
+## F2. Categorías
+
+`feat(front): ABM de categorías`
+
+Listado separado por tipo, alta, edición y baja, con los 409 del backend mostrados como mensajes útiles (nombre repetido, categoría en uso, cambio de tipo bloqueado).
+
+## F3. Movimientos
+
+`feat(front): listado y carga de movimientos`
+
+Tabla paginada con filtros por categoría, tipo y rango de fechas. Formulario de alta y edición. Es la pantalla de uso diario.
+
+## F4. Dashboard
+
+`feat(front): dashboard con gráficos`
+
+Consume los tres endpoints de resumen: tarjetas del mes, torta por categoría y línea de evolución.
+
+---
 
 ## 7. Presupuestos (opcional)
 
