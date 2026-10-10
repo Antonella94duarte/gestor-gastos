@@ -11,6 +11,17 @@
   --error-fondo: #fef2f2;
   --radio: 10px;
 
+  /* Par divergente de la skill de dataviz (Ingreso/Gasto en gráficos y en
+     las dos tarjetas de KPI que se ven una junto a la otra). Validado con
+     validate_palette.js: ΔE 21.6 CVD / 32.3 visión normal, ambos ejes PASS.
+     --positivo/--negativo (arriba) NO pasan ese check (ΔE 4.2 CVD, FAIL) y
+     quedan sin tocar: los usa Balance, un solo número por vez, y la tabla
+     de Movimientos (F3) — ver nota en CLAUDE.md. */
+  --dinero-entra: #2a78d6;
+  --dinero-sale: #e34948;
+  --grafico-grilla: #e1e0d9;
+  --grafico-eje: #c3c2b7;
+
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--texto);
 }
@@ -476,4 +487,151 @@ h2 {
 .paginacion-botones {
   display: flex;
   gap: 0.5rem;
+}
+
+/* ---------- Dashboard ---------- */
+
+.metrica-ingreso {
+  color: var(--dinero-entra);
+}
+
+.metrica-gasto {
+  color: var(--dinero-sale);
+}
+
+.filtros-periodo {
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Control segmentado: pastilla con 2-3 opciones, la activa rellena. */
+.segmentado {
+  display: inline-flex;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.segmentado button {
+  font: inherit;
+  font-size: 0.8125rem;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  background: var(--superficie);
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+
+.segmentado button + button {
+  border-left: 1px solid var(--borde);
+}
+
+.segmentado button:hover:not(.activo) {
+  background: var(--fondo);
+}
+
+.segmentado button.activo {
+  background: var(--primario);
+  color: #fff;
+}
+
+.grafico-tarjeta {
+  margin-bottom: 1.25rem;
+}
+
+.grafico-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.grafico-encabezado h2 {
+  margin: 0;
+}
+
+.grafico-controles {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Refetch sin parpadeo: el gráfico anterior queda atenuado en vez de
+   desaparecer detrás de un spinner mientras llega el nuevo período. */
+.grafico-contenedor {
+  transition: opacity 150ms ease;
+}
+
+.grafico-actualizando {
+  opacity: 0.5;
+}
+
+.grafico-tooltip {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 0.625rem 0.75rem;
+  box-shadow: 0 4px 12px rgba(11, 11, 11, 0.08);
+  font-size: 0.8125rem;
+  min-width: 160px;
+}
+
+.grafico-tooltip-titulo {
+  display: block;
+  margin-bottom: 0.375rem;
+}
+
+.grafico-tooltip-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0.125rem 0;
+}
+
+/* Un trazo corto, no un cuadrado: la leyenda ya dice qué serie es cada
+   línea, esto solo repite el color sin gastar tinta de dato extra. */
+.grafico-tooltip-clave {
+  width: 10px;
+  height: 0;
+  border-top: 2px solid;
+  flex-shrink: 0;
+}
+
+.grafico-tooltip-balance {
+  margin-top: 0.25rem;
+  padding-top: 0.375rem;
+  border-top: 1px solid var(--borde);
+}
+
+.tabla-resumen {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.tabla-resumen th,
+.tabla-resumen td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--borde);
+}
+
+.tabla-resumen th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--texto-suave);
+  font-weight: 600;
+}
+
+.tabla-resumen tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.celda-numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }

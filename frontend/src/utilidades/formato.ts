@@ -9,6 +9,11 @@ export function nombreMes(mes: number): string {
   return MESES[mes - 1] ?? "";
 }
 
+/** "Ene", "Feb"… para ejes y etiquetas donde el nombre completo no entra. */
+export function nombreMesCorto(mes: number): string {
+  return (MESES[mes - 1] ?? "").slice(0, 3);
+}
+
 const formateadorMoneda = new Intl.NumberFormat("es-PY", {
   style: "currency",
   currency: "PYG",
@@ -17,6 +22,17 @@ const formateadorMoneda = new Intl.NumberFormat("es-PY", {
 
 export function formatearMoneda(monto: number): string {
   return formateadorMoneda.format(monto);
+}
+
+const formateadorCompacto = new Intl.NumberFormat("es-PY", {
+  notation: "compact",
+  compactDisplay: "short",
+  maximumFractionDigits: 1,
+});
+
+/** "1,5K" en vez del monto completo: solo para marcas de eje, nunca para un valor directo. */
+export function formatearCompacto(monto: number): string {
+  return formateadorCompacto.format(monto);
 }
 
 const formateadorFecha = new Intl.DateTimeFormat("es-PY", {
@@ -48,7 +64,7 @@ export function finDiaLocalAIso(fecha: string): string {
   return new Date(`${fecha}T23:59:59.999`).toISOString();
 }
 
-function formatearFechaInput(fecha: Date): string {
+export function formatearFechaInput(fecha: Date): string {
   const anio = fecha.getFullYear();
   const mes = String(fecha.getMonth() + 1).padStart(2, "0");
   const dia = String(fecha.getDate()).padStart(2, "0");

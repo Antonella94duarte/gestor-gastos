@@ -166,11 +166,21 @@ Tabla paginada con filtros por categoría, tipo y rango de fechas. Formulario de
 - Si se borra la última fila de una página que no es la primera, retrocede una página sola
 - Verificado end-to-end con Playwright: alta de gasto e ingreso, filtro por tipo, edición de monto y descripción, borrado — con capturas en cada paso
 
-## F4. Dashboard
+## F4. Dashboard ✅
 
 `feat(front): dashboard con gráficos`
 
-Consume los tres endpoints de resumen: tarjetas del mes, torta por categoría y línea de evolución.
+Consume los tres endpoints de resumen: tarjetas del mes, gráfico de barras por categoría y línea de evolución. Construido siguiendo la skill `dataviz` del repo (procedimiento, paleta y checklist de accesibilidad).
+
+- **No es una torta.** La skill descarta donut/pie para part-to-whole salvo comparaciones triviales de ≤6 segmentos; "por categoría" es una barra horizontal, una sola categoría por fila, ordenada por monto, con valor y porcentaje como etiqueta directa
+- Barras de un único color por vista (azul Ingreso / rojo Gasto) — nunca un color por categoría: con nombre + longitud ya identificando la fila, colorear por categoría gastaría el canal de identidad en algo que la barra ya muestra (regla explícita de la skill)
+- Más de 7 categorías con movimiento se pliegan en "Otros"
+- Selector de período (3/6/12 meses) **compartido** entre ambos gráficos — nunca un filtro de fecha por gráfico, para que los números de los dos siempre coincidan. El toggle Gasto/Ingreso de "Por categoría" no es un filtro de alcance: elige qué serie mostrar en un gráfico de un solo color, por eso queda dentro de esa tarjeta
+- Al cambiar el período o el tipo, el gráfico anterior queda atenuado mientras llega el nuevo, sin spinner ni salto de layout
+- Tooltip propio: cruceta en líneas, resaltado de fila en barras, valores en negrita y nombres en gris, siempre con un par `line-key` (trazo corto) en vez de un cuadrado
+- Cada gráfico tiene su vista de tabla (toggle "Ver tabla"), accesible sin pasar por el mouse
+- **Paleta validada, no elegida a ojo**: `Ingreso = #2a78d6` / `Gasto = #e34948`, corridos contra `validate_palette.js` (ΔE 21.6 CVD / 32.3 visión normal, ambos PASS). Ver la nota de accesibilidad en CLAUDE.md sobre el verde/rojo que ya usaba el resto de la app
+- Verificado con Playwright: los dos gráficos renderizan, tooltips, los tres períodos, el toggle de categorías y la vista de tabla — con una segunda pasada para distinguir artefactos de animación/mouse del script de problemas reales
 
 ---
 
