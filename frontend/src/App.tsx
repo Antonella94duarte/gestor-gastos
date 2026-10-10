@@ -3,10 +3,10 @@ import { Layout } from "./componentes/Layout";
 import { AuthProvider } from "./auth/AuthContext";
 import { RutaProtegida } from "./auth/RutaProtegida";
 import { Categorias } from "./paginas/Categorias";
-import { EnConstruccion } from "./paginas/EnConstruccion";
 import { Inicio } from "./paginas/Inicio";
 import { Login } from "./paginas/Login";
 import { Registro } from "./paginas/Registro";
+import { Transacciones } from "./paginas/Transacciones";
 
 export default function App() {
   return (
@@ -20,10 +20,7 @@ export default function App() {
           <Route element={<RutaProtegida />}>
             <Route element={<Layout />}>
               <Route index element={<Inicio />} />
-              <Route
-                path="transacciones"
-                element={<EnConstruccion titulo="Movimientos" />}
-              />
+              <Route path="transacciones" element={<Transacciones />} />
               <Route path="categorias" element={<Categorias />} />
             </Route>
           </Route>

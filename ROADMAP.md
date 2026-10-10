@@ -152,11 +152,19 @@ Dos secciones (Gastos / Ingresos), cada una con su lista y su alta inline. Edici
 - Después de cualquier alta, edición o baja se recargan ambas listas: si el tipo cambia, la categoría puede pasar de sección
 - Verificado end-to-end con Playwright headless contra la app real: crear, editar y eliminar una categoría, con capturas en cada paso
 
-## F3. Movimientos
+## F3. Movimientos ✅
 
 `feat(front): listado y carga de movimientos`
 
-Tabla paginada con filtros por categoría, tipo y rango de fechas. Formulario de alta y edición. Es la pantalla de uso diario.
+Tabla paginada con filtros por categoría, tipo y rango de fechas. Formulario de alta y edición compartido entre ambos modos. Es la pantalla de uso diario.
+
+- Filtros independientes (tipo, categoría, desde, hasta) que resetean a la página 1 al cambiar; "Limpiar filtros" solo aparece si hay alguno activo
+- El selector de categoría del formulario se filtra por el tipo elegido, y se limpia si deja de pertenecer a ese tipo
+- Monto con signo y color (`+`/verde para Ingreso, `-`/rojo para Gasto) en vez de una columna de tipo aparte
+- Alta y edición en el mismo componente (`FormularioTransaccion`), distinguidos por si recibe o no una transacción
+- Borrado con confirmación de dos pasos por fila, igual que en Categorías
+- Si se borra la última fila de una página que no es la primera, retrocede una página sola
+- Verificado end-to-end con Playwright: alta de gasto e ingreso, filtro por tipo, edición de monto y descripción, borrado — con capturas en cada paso
 
 ## F4. Dashboard
 

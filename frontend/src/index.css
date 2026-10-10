@@ -349,3 +349,131 @@ h2 {
 .boton-peligro:hover:not(:disabled) {
   background: var(--error-fondo);
 }
+
+/* ---------- Movimientos ---------- */
+
+.encabezado-seccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.encabezado-seccion h1 {
+  margin: 0;
+}
+
+.formulario-transaccion {
+  margin-bottom: 1.25rem;
+}
+
+.formulario-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.formulario-grilla-ancho-completo {
+  grid-column: 1 / -1;
+}
+
+.formulario-acciones {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--texto-suave);
+}
+
+.filtros select,
+.filtros input {
+  min-width: 150px;
+}
+
+.tabla-contenedor {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.tabla-transacciones {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.925rem;
+}
+
+.tabla-transacciones th,
+.tabla-transacciones td {
+  padding: 0.75rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid var(--borde);
+  white-space: nowrap;
+}
+
+.tabla-transacciones th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--texto-suave);
+  font-weight: 600;
+}
+
+.tabla-transacciones tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.celda-descripcion {
+  white-space: normal;
+  color: var(--texto-suave);
+  max-width: 280px;
+}
+
+.celda-monto {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.celda-acciones {
+  text-align: right;
+}
+
+.celda-acciones-botones {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.celda-acciones .error-campo {
+  display: block;
+  text-align: right;
+  margin-top: 0.25rem;
+  white-space: normal;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--borde);
+}
+
+.paginacion-botones {
+  display: flex;
+  gap: 0.5rem;
+}
